@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sebas Bot | Motor Cuantitativo & Proyector de Rendimientos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#07090e',
+                        card: '#0e131f',
+                        cardLight: '#141b2d',
+                        border: '#1e293b',
+                        borderLight: '#334155',
+                        primary: '#3b82f6',
+                        primaryHover: '#2563eb',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        muted: '#94a3b8'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                            '50%': { opacity: '0.8', transform: 'scale(1.05)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #07090e; 
+            color: #f8fafc; 
+            overflow-x: hidden;
+        }
+
+        /* Ambient background glow */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1000px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.04) 50%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-panel {
+            background: rgba(14, 19, 31, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(30, 41, 59, 0.9);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Premium Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px; width: 22px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -9px;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 2px 4px rgba(0, 0, 0, 0.4);
+            border: 2px solid #ffffff;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #60a5fa;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 5px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 9999px;
+        }
+        input[type=range]:focus { outline: none; }
+
+        /* Remove spin buttons from number inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* Section divider glow */
+        .section-glow {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.3) 50%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="selection:bg-primary selection:text-white relative">
+
+    <div class="ambient-glow"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-border/80 px-6 py-4 bg-dark/80 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-gradient-to-tr from-primary to-blue-400 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] group-hover:scale-105 transition-transform">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-primary transition-colors">Sebas Bot</span>
+                    <span class="block text-[10px] uppercase tracking-widest text-primary font-semibold">Quant Trading System</span>
+                </div>
+            </a>
+
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-muted">
+                <a href="#presentacion" class="hover:text-white transition-colors">Presentación</a>
+                <a href="#mision-vision" class="hover:text-white transition-colors">Misión & Visión</a>
+                <a href="#aviso-legal" class="hover:text-white transition-colors">Aviso Legal</a>
+                <a href="#simulador" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primaryHover text-white font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:scale-[1.02]">
+                    Proyectar Retornos
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-28 space-y-28 relative z-10">
+
+        <!-- ==========================================
+             SECCIÓN 1: PRESENTACIÓN DEL PROYECTO
+             ========================================== -->
+        <section id="presentacion" class="pt-6">
+            <div class="text-center max-w-3xl mx-auto space-y-6">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
+                    El Poder de los Algoritmos para <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-primary to-indigo-400">tu Libertad Financiera</span>
+                </h1>
+                
+                <p class="text-lg text-muted leading-relaxed">
+                    <strong>Sebas Bot</strong> opera un modelo algorítmico disciplinado sobre <strong>BTC, ETH y SOL</strong> con USDT en <strong>Binance Futures</strong>, eliminando por completo las emociones humanas y maximizando la asimetría matemática del mercado.
+                </p>
+
+                <div class="pt-2 flex flex-wrap justify-center gap-4">
+                    <a href="#simulador" class="px-8 py-4 rounded-xl bg-primary hover:bg-primaryHover text-white font-bold text-base transition-all shadow-[0_0_25px_rgba(59,130,246,0.5)] hover:scale-105">
+                        Ir al Simulador de Inversión
+                    </a>
+                    <a href="#mision-vision" class="px-8 py-4 rounded-xl glass-panel hover:bg-cardLight text-white font-semibold text-base transition-all">
+                        Conocer Más
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-glow"></div>
+
+        <!-- ==========================================
+             SECCIÓN 2: MISIÓN Y VISIÓN
+             ========================================== -->
+        <section id="mision-vision" class="space-y-10">
+            <div class="text-center max-w-2xl mx-auto space-y-3">
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Misión & Visión</h2>
+                <p class="text-muted text-base">Los principios rectores que respaldan la gestión de capital y el desarrollo cuantitativo.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Misión -->
+                <div class="glass-panel rounded-3xl p-8 md:p-10 border-l-4 border-l-primary relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-5">
+                        <div class="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center text-primary font-black text-xl">
+                            M
+                        </div>
+                        <h3 class="text-2xl font-bold text-white">Nuestra Misión</h3>
+                    </div>
+                    <p class="text-muted leading-relaxed text-base">
+                        Democratizar el acceso a rendimientos institucionales de alto nivel a través de algoritmos matemáticos y modelos de probabilidad estrictos, eliminando por completo el sesgo psicológico y las decisiones emocionales en los mercados financieros.
+                    </p>
+                </div>
+
+                <!-- Visión -->
+                <div class="glass-panel rounded-3xl p-8 md:p-10 border-l-4 border-l-success relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-5">
+                        <div class="w-12 h-12 rounded-2xl bg-success/15 flex items-center justify-center text-success font-black text-xl">
+                            V
+                        </div>
+                        <h3 class="text-2xl font-bold text-white">Nuestra Visión</h3>
+                    </div>
+                    <p class="text-muted leading-relaxed text-base">
+                        Consolidar a <strong>Sebas Bot</strong> como el vehículo tecnológico más transparente, seguro y rentable del ecosistema cripto, brindando a cada inversor un puente matemático predecible entre su capital inicial y su independencia financiera.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-glow"></div>
+
+        <!-- ==========================================
+             SECCIÓN 3: AVISO LEGAL & COMPLIANCE
+             ========================================== -->
+        <section id="aviso-legal" class="space-y-6">
+            <div class="glass-panel rounded-3xl p-8 md:p-10 border border-warning/30 bg-gradient-to-b from-warning/5 to-transparent relative overflow-hidden">
+                <div class="flex flex-col md:flex-row items-start gap-6">
+                    <div class="w-14 h-14 rounded-2xl bg-warning/10 border border-warning/30 flex items-center justify-center text-warning shrink-0">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    <div class="space-y-3">
+                        <h3 class="text-xl font-bold text-warning tracking-tight">Aviso Legal & Divulgación de Riesgo</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            El trading con instrumentos derivados y futuros de criptoactivos implica un riesgo considerable de pérdida de capital. Todas las proyecciones, métricas de retorno y tiempos estimados presentados en esta plataforma provienen de rigurosas simulaciones matemáticas de <strong>Monte Carlo</strong> ejecutadas sobre datos históricos fuera de muestra (<em>Out-of-Sample</em>) y <strong>han sido debidamente validadas en entornos de ejecución Live</strong>.
+                        </p>
+                        <p class="text-xs text-muted leading-relaxed">
+                            Los rendimientos pasados no constituyen una garantía irrevocable de resultados futuros. La gestión adecuada del <strong>Max Drawdown</strong> y la constancia del inversor son factores esenciales para el éxito del modelo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-glow"></div>
+
+        <!-- ==========================================
+             SECCIÓN 4: SIMULADOR INTERACTIVO
+             ========================================== -->
+        <section id="simulador" class="space-y-8 pt-4">
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider">
+                    Herramienta Cuantitativa
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Proyector de Rendimientos</h2>
+                <p class="text-muted text-base">Ajusta los parámetros para modelar con precisión el tiempo y capital requeridos para tus metas.</p>
+            </div>
+
+            <!-- Callout: Sin límites de capital ni DCA -->
+            <div class="max-w-3xl mx-auto glass-panel border border-primary/30 rounded-2xl p-4 sm:p-5 flex items-center gap-4 bg-gradient-to-r from-primary/10 via-dark to-primary/5 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                <div class="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div class="text-left">
+                    <p class="text-sm font-bold text-white">Flexibilidad Total: Sin Mínimos ni Límites de Inversión</p>
+                    <p class="text-xs text-muted leading-relaxed mt-0.5">
+                        No existe un monto mínimo ni máximo de capital inicial ni de aportes periódicos (DCA). Puedes comenzar con el capital que desees —sea poco o mucho— y personalizar tu plan a tu propio ritmo.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                
+                <!-- Columna Izquierda: Parámetros -->
+                <div class="xl:col-span-5 space-y-6">
+                    
+                    <!-- 1. Objetivo Financiero -->
+                    <div class="glass-panel rounded-3xl p-6 md:p-7 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-lg bg-primary/20 text-primary font-bold text-xs flex items-center justify-center">1</span>
+                            <h3 class="text-lg font-bold text-white">Objetivo de Ingreso Mensual</h3>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="text-xs font-semibold text-muted uppercase tracking-wider">Retiro Mensual Deseado</label>
+                                <div class="flex items-center bg-dark/90 border border-border rounded-xl px-3 py-1.5 focus-within:border-primary transition-all shadow-inner">
+                                    <span class="text-muted text-sm mr-1.5 font-medium">$</span>
+                                    <input type="number" id="inputIncome" value="1250" class="bg-transparent text-white w-24 outline-none text-right font-extrabold text-base">
+                                    <span class="text-muted text-xs ml-1.5">USD</span>
+                                </div>
+                            </div>
+                            <input type="range" id="sliderIncome" min="100" max="15000" step="50" value="1250">
+                            <p class="text-xs text-muted mt-2 text-right">Monto a cosechar mensualmente en la Fase 2.</p>
+                        </div>
+                    </div>
+
+                    <!-- 2. Tolerancia al Riesgo -->
+                    <div class="glass-panel rounded-3xl p-6 md:p-7 space-y-6">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="w-7 h-7 rounded-lg bg-primary/20 text-primary font-bold text-xs flex items-center justify-center">2</span>
+                                <h3 class="text-lg font-bold text-white">Gestión de Riesgo (Max DD)</h3>
+                            </div>
+                            <p class="text-xs text-muted leading-relaxed">
+                                <strong>Max Drawdown:</strong> Caída temporal máxima aceptada antes de reanudar el crecimiento.
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-6 pt-2">
+                            <!-- DD Fase 1 -->
+                            <div class="bg-dark/40 p-4 rounded-2xl border border-border/60">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-semibold text-muted uppercase tracking-wider">Fase 1: Creación (Agresividad)</label>
+                                    <div class="flex items-center bg-dark border border-border rounded-xl px-3 py-1">
+                                        <input type="number" id="inputDdCreation" value="60" class="bg-transparent text-white w-12 outline-none text-right font-extrabold text-sm">
+                                        <span class="text-primary text-xs ml-1 font-bold">%</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="sliderDdCreation" min="30" max="80" step="1" value="60">
+                                <div class="flex justify-between text-[11px] text-muted mt-1.5">
+                                    <span>Conservador (30%)</span>
+                                    <span>Agresivo (80%)</span>
+                                </div>
+                            </div>
+
+                            <!-- DD Fase 2 -->
+                            <div class="bg-dark/40 p-4 rounded-2xl border border-border/60">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-semibold text-muted uppercase tracking-wider">Fase 2: Cosecha (Retiros)</label>
+                                    <div class="flex items-center bg-dark border border-border rounded-xl px-3 py-1">
+                                        <input type="number" id="inputDdHarvest" value="25" class="bg-transparent text-white w-12 outline-none text-right font-extrabold text-sm">
+                                        <span class="text-success text-xs ml-1 font-bold">%</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="sliderDdHarvest" min="10" max="50" step="1" value="25">
+                                <div class="flex justify-between text-[11px] text-muted mt-1.5">
+                                    <span>Baja Caída (10%)</span>
+                                    <span>Mayor Caída (50%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Estructura de Capital & Fees -->
+                    <div class="glass-panel rounded-3xl p-6 md:p-7 space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-lg bg-primary/20 text-primary font-bold text-xs flex items-center justify-center">3</span>
+                            <h3 class="text-lg font-bold text-white">Inversión & Comisión</h3>
+                        </div>
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-semibold text-muted uppercase tracking-wider">Capital Inicial (Lump Sum)</label>
+                                    <div class="flex items-center bg-dark border border-border rounded-xl px-3 py-1.5">
+                                        <span class="text-muted text-sm mr-1">$</span>
+                                        <input type="number" id="inputInitial" value="1000" class="bg-transparent text-white w-24 outline-none text-right font-extrabold text-sm">
+                                        <span class="text-muted text-xs ml-1">USD</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="sliderInitial" min="10" max="50000" step="10" value="1000">
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-semibold text-muted uppercase tracking-wider">Aporte Mensual (DCA)</label>
+                                    <div class="flex items-center bg-dark border border-border rounded-xl px-3 py-1.5">
+                                        <span class="text-muted text-sm mr-1">$</span>
+                                        <input type="number" id="inputMonthly" value="140" class="bg-transparent text-white w-24 outline-none text-right font-extrabold text-sm">
+                                        <span class="text-muted text-xs ml-1">USD</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="sliderMonthly" min="0" max="5000" step="10" value="140">
+                                <p class="text-xs text-muted mt-1.5 text-right">Lleva a $0 si la inversión es solo pago único.</p>
+                            </div>
+
+                            <!-- Performance Fee (Fijo 50/50) -->
+                            <div class="pt-4 border-t border-border">
+                                <div class="bg-primary/10 border border-primary/30 rounded-2xl p-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-wider">Modelo 50/50</span>
+                                            <span class="text-xs font-bold text-white uppercase tracking-wider">Performance Fee Fijo</span>
+                                        </div>
+                                        <p class="text-[11px] text-muted mt-1 leading-snug">
+                                            50% Inversor / 50% Sebas Bot. Cobrado <strong>exclusivamente a éxito</strong> sobre ganancias netas.
+                                        </p>
+                                    </div>
+                                    <div class="text-right pl-3 shrink-0">
+                                        <span class="text-2xl font-black text-primary">50%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Columna Derecha: Resultados y KPIs -->
+                <div class="xl:col-span-7 space-y-6">
+                    
+                    <!-- KPIs Principales -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <!-- KPI 1: Tiempo -->
+                        <div class="glass-panel rounded-3xl p-7 relative overflow-hidden border-primary/40 bg-gradient-to-br from-primary/10 via-transparent to-transparent">
+                            <div class="absolute -right-8 -top-8 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+                            <span class="text-xs font-bold text-primary uppercase tracking-widest block mb-2">Tiempo Estimado</span>
+                            <div class="flex items-baseline gap-2">
+                                <span id="resMonths" class="text-5xl md:text-6xl font-black text-white tracking-tight">8</span>
+                                <span class="text-xl font-bold text-primary">Meses</span>
+                            </div>
+                            <p class="text-xs text-muted mt-3">Para culminar la Fase 1 de Creación de Capital.</p>
+                        </div>
+
+                        <!-- KPI 2: Capital Requerido -->
+                        <div class="glass-panel rounded-3xl p-7 relative overflow-hidden border-success/40 bg-gradient-to-br from-success/10 via-transparent to-transparent">
+                            <div class="absolute -right-8 -top-8 w-32 h-32 bg-success/20 rounded-full blur-2xl pointer-events-none"></div>
+                            <span class="text-xs font-bold text-success uppercase tracking-widest block mb-2">Capital Objetivo Requerido</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-bold text-success">$</span>
+                                <span id="resTargetCap" class="text-4xl md:text-5xl font-black text-white tracking-tight">8,278</span>
+                            </div>
+                            <p class="text-xs text-muted mt-3">Tamaño de cuenta para habilitar el retiro perpetuo.</p>
+                        </div>
+                    </div>
+
+                    <!-- Desglose Financiero -->
+                    <div class="glass-panel rounded-3xl p-8 space-y-8">
+                        <div class="flex items-center justify-between border-b border-border pb-4">
+                            <h3 class="text-xl font-bold text-white">Desglose de Ganancias (Fase 1)</h3>
+                            <span class="px-3 py-1 rounded-full bg-success/10 border border-success/30 text-success text-xs font-semibold">
+                                Modelo Neto
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="bg-dark/50 p-5 rounded-2xl border border-border">
+                                <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Total Invertido (Bolsillo)</span>
+                                <p id="resTotalInvested" class="text-2xl md:text-3xl font-black text-white">$1,260</p>
+                            </div>
+                            <div class="bg-dark/50 p-5 rounded-2xl border border-border">
+                                <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Ganancia Bruta (Bot)</span>
+                                <p id="resGrossProfit" class="text-2xl md:text-3xl font-black text-white">+$7,018</p>
+                            </div>
+                        </div>
+
+                        <!-- Split Inversor vs Sebas Bot -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gradient-to-r from-dark to-card rounded-2xl border border-border/80 p-6">
+                            <!-- Inversor -->
+                            <div class="sm:border-r border-border/80 sm:pr-6 pb-6 sm:pb-0 border-b sm:border-b-0">
+                                <span class="text-xs font-bold text-success uppercase tracking-widest block mb-1">Ganancia Neta Inversor</span>
+                                <p id="resInvestorProfit" class="text-3xl md:text-4xl font-black text-success">+$4,912</p>
+                                <p id="resInvestorRoi" class="text-sm font-semibold text-success mt-2">ROI Neto: 390%</p>
+                            </div>
+
+                            <!-- Sebas Bot -->
+                            <div class="sm:pl-4">
+                                <span class="text-xs font-bold text-primary uppercase tracking-widest block mb-1">Comisión Sebas Bot</span>
+                                <p id="resSebasFee" class="text-2xl md:text-3xl font-black text-primary">+$2,105</p>
+                                <p id="resFeePctDisplay" class="text-sm font-semibold text-primary mt-2">Performance Fee: 30%</p>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Progreso / Visual Journey -->
+                        <div class="pt-2">
+                            <div class="flex justify-between text-xs text-muted mb-2 font-medium">
+                                <span>Inicio (Día 1)</span>
+                                <span class="text-primary font-bold">Transición a Cosecha (Fase 2)</span>
+                            </div>
+                            <div class="w-full h-3.5 bg-dark rounded-full overflow-hidden p-0.5 border border-border">
+                                <div class="h-full bg-gradient-to-r from-blue-500 via-primary to-emerald-400 rounded-full w-full relative">
+                                    <div class="absolute inset-0 bg-white/10 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-border py-10 bg-dark text-center text-xs text-muted">
+        <div class="max-w-7xl mx-auto px-4 space-y-3">
+            <p class="font-medium text-slate-300">© 2026 Sebas Bot. Todos los derechos reservados.</p>
+            <p>Infraestructura cuantitativa y algorítmica para Binance Futures.</p>
+        </div>
+    </footer>
+
+    <!-- Interactive Simulator JS -->
+    <script>
+        // Sync Function between Sliders and Number Inputs
+        function syncInputs(sliderId, inputId) {
+            const slider = document.getElementById(sliderId);
+            const input = document.getElementById(inputId);
+            
+            slider.addEventListener('input', (e) => {
+                input.value = e.target.value;
+                calculate();
+            });
+            
+            input.addEventListener('input', (e) => {
+                let val = parseFloat(e.target.value) || 0;
+                slider.value = val;
+                calculate();
+            });
+        }
+
+        syncInputs('sliderIncome', 'inputIncome');
+        syncInputs('sliderDdCreation', 'inputDdCreation');
+        syncInputs('sliderDdHarvest', 'inputDdHarvest');
+        syncInputs('sliderInitial', 'inputInitial');
+        syncInputs('sliderMonthly', 'inputMonthly');
+
+        // Result Elements
+        const resTargetCap = document.getElementById('resTargetCap');
+        const resMonths = document.getElementById('resMonths');
+        const resTotalInvested = document.getElementById('resTotalInvested');
+        const resGrossProfit = document.getElementById('resGrossProfit');
+        const resInvestorProfit = document.getElementById('resInvestorProfit');
+        const resInvestorRoi = document.getElementById('resInvestorRoi');
+        const resSebasFee = document.getElementById('resSebasFee');
+        const resFeePctDisplay = document.getElementById('resFeePctDisplay');
+
+        function formatCurrency(num) {
+            return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+        function formatCurrencyFull(num) {
+            return '$' + num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+
+        function calculate() {
+            const income = parseFloat(document.getElementById('inputIncome').value) || 0;
+            const ddCreation = parseFloat(document.getElementById('inputDdCreation').value) || 30;
+            const ddHarvest = parseFloat(document.getElementById('inputDdHarvest').value) || 10;
+            const initial = parseFloat(document.getElementById('inputInitial').value) || 0;
+            const monthly = parseFloat(document.getElementById('inputMonthly').value) || 0;
+            const feePct = 50; // Fixed 50/50 profit split
+
+            // Phase 1 (Creation): DD from 30% to 80% maps to Growth Rate 15% to 50% per month
+            let growthRate = ((ddCreation - 30) / (80 - 30)) * (0.50 - 0.15) + 0.15;
+            growthRate = Math.max(0.15, Math.min(0.50, growthRate));
+            
+            // Phase 2 (Harvest): DD from 10% to 50% maps to Harvest Return 5% to 22% per month
+            let harvestReturn = ((ddHarvest - 10) / (50 - 10)) * (0.22 - 0.05) + 0.05;
+            harvestReturn = Math.max(0.05, Math.min(0.22, harvestReturn));
+
+            // Target Capital needed AFTER paying performance fee
+            const feeMultiplier = 1 - (feePct / 100);
+            const requiredGrossIncome = feeMultiplier > 0 ? income / feeMultiplier : income;
+            
+            let targetCap = 0;
+            if (harvestReturn > 0) {
+                targetCap = requiredGrossIncome / harvestReturn;
+            }
+            resTargetCap.innerText = formatCurrency(targetCap);
+
+            // Time to Goal calculation
+            let cap = initial;
+            let months = 0;
+            
+            if (initial < targetCap) {
+                while (cap < targetCap && months < 360) {
+                    cap = cap * (1 + growthRate) + monthly;
+                    months++;
+                    if (monthly <= 0 && growthRate <= 0) break; 
+                }
+            }
+
+            resMonths.innerText = months >= 360 ? "360+" : months;
+
+            // Financial Breakdown
+            const totalInvested = initial + (monthly * months);
+            resTotalInvested.innerText = formatCurrencyFull(totalInvested);
+
+            const finalCap = initial >= targetCap ? initial : targetCap;
+            const grossProfit = finalCap - totalInvested;
+            
+            if (grossProfit <= 0) {
+                resGrossProfit.innerText = "$0";
+                resInvestorProfit.innerText = "$0";
+                resSebasFee.innerText = "$0";
+                resInvestorRoi.innerText = "ROI Neto: 0%";
+            } else {
+                resGrossProfit.innerText = '+' + formatCurrencyFull(grossProfit);
+                
+                const sebasCut = grossProfit * (feePct / 100);
+                const investorCut = grossProfit - sebasCut;
+                
+                resSebasFee.innerText = '+' + formatCurrencyFull(sebasCut);
+                resInvestorProfit.innerText = '+' + formatCurrencyFull(investorCut);
+                
+                const roi = totalInvested > 0 ? (investorCut / totalInvested) * 100 : 0;
+                resInvestorRoi.innerText = 'ROI Neto: ' + roi.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '%';
+            }
+            
+            resFeePctDisplay.innerText = `Performance Fee Fijo: 50%`;
+        }
+
+        // Initialize calculation on load
+        calculate();
+    </script>
+</body>
+</html>
